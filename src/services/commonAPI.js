@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const commonAPI = async (httpMethod,url,reqBody,reqHeader) =>{
 const reqConfig = {
     method:httpMethod,
@@ -9,3 +11,6 @@ const reqConfig = {
 }
 
 export default commonAPI
+
+
+

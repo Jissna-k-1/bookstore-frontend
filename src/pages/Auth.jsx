@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
 import { FaEye, FaEyeSlash, FaUser } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
+import { loginAPI, registerAPI } from '../services/allAPI';
+
 
 
 function Auth({insideRegister}) {
+
+const navigate = useNavigate()
+
  const [viewPassword, setViewPassword] = useState(false)
 
  
@@ -14,11 +19,67 @@ function Auth({insideRegister}) {
  })
 //  console.log(userDetails);
  
- const handleRegister = (e)=>{
+ const handleRegister = async (e)=>{
   e.preventDefault()
   const {username,email,password} = userDetails
   if(email && username && password){
-  toast.success("API CALL")
+  // toast.success("API CALL")
+   try{
+    const result = await registerAPI(userDetails)
+    console.log(result);
+    if(result.status==200){
+      toast.success(`Register successful, Please login to Bookstore!!!`)
+      setUserDetails({username:"", email:"", password:""})
+      navigate('/login')
+    }
+    else if(result.status==409){
+      toast.warning(result.response.data)
+      setUserDetails({username:"", email:"", password:""})
+      navigate('/login')
+    }else{
+      console.log(result);
+      toast.error("something went wrong")
+      setUserDetails({username:"", email:"", password:""})
+    }    
+   }catch(err){
+    console.log(err);
+    
+   }
+  }else{
+ toast.info("Please fill the form completely!!")
+  }
+ }
+
+  const handleLogin = async (e)=>{
+  e.preventDefault()
+  const {email,password} = userDetails
+  if(email && password){
+  // toast.success("API CALL")
+   try{
+    // api call
+    const result = await loginAPI(userDetails)
+    console.log(result);
+    if(result.status==200){
+       toast.success("Login Successfull")
+       sessionStorage.setItem("token",result.data.token)
+       sessionStorage.setItem("user",JSON.stringify(result.data.user))
+       setTimeout(()=>{
+        if(result.data.user.role=="admin"){
+        navigate('/admin/home')
+        }else{
+          navigate('/')
+        }
+       },2500)
+    }else if(result.status==401 || result.status==404){
+      toast.warning(result.response.data)
+      setUserDetails({username:"", email:"", password:""})
+    }else{
+      toast.error("something went wrong!!")
+      setUserDetails({username:"", email:"", password:""})
+    }  
+   }catch(err){
+    console.log(err);    
+   }
   }else{
  toast.info("Please fill the form completely!!")
   }
@@ -57,13 +118,13 @@ function Auth({insideRegister}) {
              </div>
 
              {/* forgot password */}
-             {
-              !insideRegister &&
+             
+              
               <div className="flex justify-between mb-5">
                 <p className="text-xs text-orange-300">*Never share your password with others</p>
-                <button className="text-xs underline">Forgot Password</button>
+                {!insideRegister && <button className="text-xs underline">Forgot Password</button>}
               </div>
-             }
+             
 
              {/* login/register button */}
              <div className="text-center">
@@ -71,7 +132,7 @@ function Auth({insideRegister}) {
                 insideRegister ?
                 <button onClick={handleRegister} type='button' className='bg-green-700 p-2 w-full rounded'>Register</button>
                 :
-                <button type='button' className='bg-green-700 p-2 w-full rounded'>Login</button>
+                <button onClick={handleLogin} type='button' className='bg-green-700 p-2 w-full rounded'>Login</button>
 
               }
              </div>
@@ -93,7 +154,7 @@ function Auth({insideRegister}) {
         </div>
       </div>
 {/* toastContainer */}
-<ToastContainer position="top-center" autoClose={3000} theme="colored"/>
+<ToastContainer position="top-center" autoClose={2000} theme="colored"/>
       
     </div>
   )
