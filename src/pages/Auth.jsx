@@ -3,15 +3,14 @@ import { FaEye, FaEyeSlash, FaUser } from 'react-icons/fa'
 import { Link, useNavigate } from 'react-router-dom'
 import { ToastContainer, toast } from 'react-toastify';
 import { loginAPI, registerAPI } from '../services/allAPI';
-
+import { GoogleLogin } from '@react-oauth/google';
+import {jwtDecode} from 'jwt-decode'
 
 
 function Auth({insideRegister}) {
 
 const navigate = useNavigate()
-
- const [viewPassword, setViewPassword] = useState(false)
-
+const [viewPassword, setViewPassword] = useState(false)
  
 // store data from form
  const [userDetails, setUserDetails] = useState({
@@ -85,6 +84,15 @@ const navigate = useNavigate()
   }
  }
 
+ const handleGoogleLogin = async(credentialResponse)=>{
+  console.log("Inside handleGoogleLogin");
+  console.log(credentialResponse);
+  const decode = jwtDecode(credentialResponse.credential)
+  console.log(decode);
+  
+    
+ }
+
   return (
     <div className='w-full min-h-screen flex justify-center items-center flex-col bg-[url(/loginbg-image.jpg)] bg-cover bg-center'>
       <div className="p-10">
@@ -117,9 +125,7 @@ const navigate = useNavigate()
               }
              </div>
 
-             {/* forgot password */}
-             
-              
+             {/* forgot password */} 
               <div className="flex justify-between mb-5">
                 <p className="text-xs text-orange-300">*Never share your password with others</p>
                 {!insideRegister && <button className="text-xs underline">Forgot Password</button>}
@@ -138,6 +144,21 @@ const navigate = useNavigate()
              </div>
 
              {/* google authentication */}
+              <div className="text-center my-5">
+                { !insideRegister && <p>--------------------------------------or---------------------------------------</p>}
+                { !insideRegister && 
+                <div className='my-5 flex justify-center items-center w-full'>
+                  <GoogleLogin
+                    onSuccess={credentialResponse => {
+                    handleGoogleLogin(credentialResponse)
+                    }}
+                    onError={() => {
+                     console.log('Login Failed');
+                    }}
+                  />
+                </div>
+                }
+              </div>
              <div className="my-5 text-center">
               {
                 insideRegister ?
